@@ -1,0 +1,17 @@
+Name;Value
+BoxLengthConv;400.0000
+BoxWidthConv;400.0000
+PatternNo;3
+PalletLength;1200.0000
+PalletWidth;800.0000
+OriginCorner;1
+OrientationMode;0
+Gap;0.0000
+MaxOverhang;0.0000
+PlateConv;600.0000
+PlateCross;400.0000
+PlateExtConv;600.0000
+PlateExtCross;1400.0000
+ApproachDist;30.0000
+ApproachHeight;20.0000
+Tolerance;0.1000

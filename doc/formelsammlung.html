@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Formelsammlung Palettierung</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10); --pallet: #efeee9;
+  --rot0: #2a78d6; --rot0-fill: #cde2fb; --rot90: #eb6834; --rot90-fill: #fbdccf; --critical: #d03b3b;
+}
+@media screen and (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10); --pallet: #242422;
+    --rot0: #3987e5; --rot0-fill: #1a3352; --rot90: #d95926; --rot90-fill: #472415;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink);
+       font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 920px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 26px; margin: 16px 0 4px; }
+h2 { font-size: 20px; margin: 0 0 10px; }
+h3 { font-size: 16px; margin: 18px 0 6px; }
+p.sub { color: var(--ink2); margin: 0 0 16px; }
+section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+          padding: 16px 20px; margin: 16px 0; }
+nav ol { columns: 2; margin: 0; }
+var { font-family: "Cambria Math", Cambria, "Times New Roman", serif; font-style: italic; }
+.formula { font-family: "Cambria Math", Cambria, "Times New Roman", serif; font-size: 16px;
+           background: var(--page); border-left: 3px solid var(--axis); padding: 8px 14px; margin: 8px 0;
+           line-height: 1.9; overflow-x: auto; }
+.formula .c { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 13px; color: var(--ink2); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 8px 0; }
+th { text-align: left; color: var(--ink2); font-weight: 600; border-bottom: 1px solid var(--axis); padding: 4px 6px; }
+td { border-bottom: 1px solid var(--grid); padding: 4px 6px; vertical-align: top; }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+code, .mono { font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+.note { border-left: 3px solid var(--rot0); padding: 4px 12px; color: var(--ink2); }
+figure { margin: 12px 0; }
+figure svg { width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto; }
+figcaption { text-align: center; color: var(--ink2); font-size: 13px; }
+svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; fill: var(--ink); }
+svg .muted { fill: var(--muted); }
+svg .pallet { fill: var(--pallet); stroke: var(--axis); stroke-width: 1.5; }
+svg .b0 { fill: var(--rot0-fill); stroke: var(--rot0); stroke-width: 1.5; }
+svg .b90 { fill: var(--rot90-fill); stroke: var(--rot90); stroke-width: 1.5; }
+svg .ln { stroke: var(--ink); stroke-width: 1.5; fill: none; }
+svg .thin { stroke: var(--ink2); stroke-width: 1; fill: none; stroke-dasharray: 4 3; }
+svg .head { fill: var(--ink); }
+svg .zone { fill: var(--grid); stroke: var(--muted); stroke-width: 1; }
+svg .zone.occ { fill: var(--critical); opacity: .55; }
+@page { size: A4; margin: 14mm; }
+@media print {
+  body { background: #fff; font-size: 11pt; }
+  main { max-width: none; padding: 0; }
+  section { border: none; padding: 0; margin: 0 0 8mm; }
+  section.break { break-before: page; }
+  .formula, table, figure { break-inside: avoid; }
+  nav { break-after: page; }
+}
+</style>
+</head>
+<body>
+<main>
+<h1>Formelsammlung Palettierung</h1>
+<p class="sub">Alle Berechnungen des Palettieralgorithmus mit Formeln, Skizzen und einem durchgerechneten
+Beispiel. Die Stufen S0–S8 entsprechen den Modulen in <code>src/palletizer/</code> und den geplanten
+Bausteinen in der SPS (siehe <code>doc/sps-leitfaden.md</code>).</p>
+
+<nav><section>
+<h2>Inhalt</h2>
+<ol>
+  <li><a href="#bez">Bezeichnungen</a></li>
+  <li><a href="#ks">Koordinatensystem und Winkel</a></li>
+  <li><a href="#s0">S0 Eingabeprüfung</a></li>
+  <li><a href="#s1">S1 Lang- und Kurzseite</a></li>
+  <li><a href="#s2">S2 Musterauflösung</a></li>
+  <li><a href="#s3">S3 Kartonpositionen und Drehung</a></li>
+  <li><a href="#s4">S4 Zentrieren, Überstand, Variante</a></li>
+  <li><a href="#s5">S5 Ablagereihenfolge</a></li>
+  <li><a href="#s6">S6 Annäherungsrichtung</a></li>
+  <li><a href="#s7">S7 Saugplatte</a></li>
+  <li><a href="#s8">S8 Umrechnung auf den Nullpunkt</a></li>
+  <li><a href="#bsp">Rechenbeispiel EU36</a></li>
+  <li><a href="#codes">Fehlercodes, Warnbits, Konstanten</a></li>
+</ol>
+</section></nav>
+
+<section id="bez">
+<h2>1 · Bezeichnungen</h2>
+<p>Alle Längen in mm, Datentyp LReal. Winkel in Grad, Datentyp Int.</p>
+<table>
+<thead><tr><th>Zeichen</th><th>Bezeichner</th><th>Bedeutung</th><th>Standard</th></tr></thead>
+<tbody>
+<tr><td><var>L</var><sub>P</sub>, <var>B</var><sub>P</sub></td><td class="mono">PalletLength, PalletWidth</td><td>Palettenmaß in X und Y</td><td>1200, 800</td></tr>
+<tr><td><var>a</var><sub>F</sub>, <var>b</var><sub>F</sub></td><td class="mono">BoxLengthConv, BoxWidthConv</td><td>Kartonmaß in und quer zur Förderrichtung</td><td>–</td></tr>
+<tr><td><var>l</var>, <var>k</var></td><td class="mono">BoxLong, BoxShort</td><td>Lang- und Kurzseite des Kartons</td><td>–</td></tr>
+<tr><td><var>g</var></td><td class="mono">Gap</td><td>Spaltmaß zwischen den Kartons</td><td>0</td></tr>
+<tr><td><var>u</var><sub>max</sub></td><td class="mono">MaxOverhang</td><td>erlaubter Überstand je Seite</td><td>0</td></tr>
+<tr><td><var>ε</var></td><td class="mono">Tolerance</td><td>Toleranz für alle Längenvergleiche</td><td>0,1</td></tr>
+<tr><td><var>s</var></td><td class="mono">ApproachDist</td><td>Abstand der Vorposition in X/Y, zugleich Tiefe der Prüfzonen</td><td>30</td></tr>
+<tr><td><var>h</var></td><td class="mono">ApproachHeight</td><td>Höhe der Vorposition über dem Ziel</td><td>20</td></tr>
+<tr><td><var>p</var><sub>F</sub>, <var>p</var><sub>Q</sub></td><td class="mono">PlateConv, PlateCross</td><td>Saugplatte in / quer zur Förderrichtung</td><td>600, 400</td></tr>
+<tr><td><var>P</var><sub>F</sub>, <var>P</var><sub>Q</sub></td><td class="mono">PlateExtConv, PlateExtCross</td><td>ausgefahrene Saugplatte</td><td>600, 1400</td></tr>
+<tr><td><var>n</var><sub>x</sub>, <var>n</var><sub>y</sub></td><td class="mono">Cols, Rows</td><td>Spalten (in X) und Reihen (in Y) eines Blocks</td><td>aus dem Muster</td></tr>
+<tr><td><var>a</var>, <var>c</var></td><td class="mono">SizeX, SizeY</td><td>Kartonmaß in X und Y innerhalb eines Blocks</td><td>–</td></tr>
+<tr><td><var>W</var><sub>X</sub>, <var>W</var><sub>Y</sub></td><td class="mono">LayerSizeX, LayerSizeY</td><td>Lagenmaß</td><td>–</td></tr>
+</tbody></table>
+</section>
+
+<section id="ks" class="break">
+<h2>2 · Koordinatensystem und Winkel</h2>
+<p>Gerechnet wird immer im <b>Grundsystem</b>: Blick von oben wie in der PDF-Zeichnung, Ursprung in der
+Ecke E1 unten links, X entlang der Palettenlänge, Y entlang der Palettenbreite. Die Ecken sind gegen den
+Uhrzeigersinn nummeriert. Erst Stufe S8 rechnet auf den gewählten Palettennullpunkt um.</p>
+<figure>
+<svg viewBox="0 0 560 250" role="img" aria-label="Grundsystem der Palette">
+  <rect class="pallet" x="60" y="30" width="270" height="180"/>
+  <text x="44" y="228" font-size="14">E1</text><text x="334" y="228" font-size="14">E2</text>
+  <text x="334" y="24" font-size="14">E3</text><text x="44" y="24" font-size="14">E4</text>
+  <line class="ln" x1="60" y1="210" x2="150" y2="210"/><polygon class="head" points="158,210 146,205 146,215"/>
+  <line class="ln" x1="60" y1="210" x2="60" y2="120"/><polygon class="head" points="60,112 55,124 65,124"/>
+  <circle class="head" cx="60" cy="210" r="4"/>
+  <text x="162" y="206" font-size="14">X</text><text x="66" y="118" font-size="14">Y</text>
+  <text class="muted" x="195" y="242" font-size="12" text-anchor="middle">L_P = 1200 (X)</text>
+  <text class="muted" x="345" y="124" font-size="12">B_P = 800 (Y)</text>
+  <g transform="translate(470,120)">
+    <circle cx="0" cy="0" r="46" fill="none" stroke="var(--axis)"/>
+    <line class="ln" x1="0" y1="0" x2="46" y2="0"/><line class="ln" x1="0" y1="0" x2="0" y2="-46"/>
+    <line class="thin" x1="0" y1="0" x2="32.5" y2="-32.5"/><line class="thin" x1="0" y1="0" x2="-46" y2="0"/>
+    <line class="thin" x1="0" y1="0" x2="0" y2="46"/>
+    <text x="52" y="5" font-size="12">0°</text><text x="-8" y="-52" font-size="12">90°</text>
+    <text x="34" y="-36" font-size="12">45°</text><text x="-76" y="5" font-size="12">180°</text>
+    <text x="-12" y="62" font-size="12">270°</text>
+  </g>
+</svg>
+<figcaption>Grundsystem und Winkelkonvention: 0° = +X, positiv gegen den Uhrzeigersinn (von oben).</figcaption>
+</figure>
+<p>Bei 0° liegt die <b>Förderrichtung parallel zu X</b>. Die Drehung Rot eines Kartons (0° oder 90°)
+bezieht sich auf die Lage, in der er auf dem Förderband ankommt.</p>
+<p>Die 8 Richtungen <var>k</var> = 0 … 7 haben die Einheitsvektoren</p>
+<div class="formula">
+<var>u</var><sub>k</sub> = (cos(<var>k</var>·45°), sin(<var>k</var>·45°))
+<span class="c">&nbsp;&nbsp;→ Komponenten nur 0, ±1 oder ±√½ = ±0,7071067811865476 (Tabelle DIR_X, DIR_Y)</span>
+</div>
+<table>
+<thead><tr><th><var>k</var></th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr></thead>
+<tbody>
+<tr><th>Winkel</th><td>0°</td><td>45°</td><td>90°</td><td>135°</td><td>180°</td><td>225°</td><td>270°</td><td>315°</td></tr>
+<tr><th>Name</th><td>O</td><td>NO</td><td>N</td><td>NW</td><td>W</td><td>SW</td><td>S</td><td>SO</td></tr>
+<tr><th>DIR_X</th><td>1</td><td>√½</td><td>0</td><td>−√½</td><td>−1</td><td>−√½</td><td>0</td><td>√½</td></tr>
+<tr><th>DIR_Y</th><td>0</td><td>√½</td><td>1</td><td>√½</td><td>0</td><td>−√½</td><td>−1</td><td>−√½</td></tr>
+</tbody></table>
+</section>
+
+<section id="s0">
+<h2>3 · S0 Eingabeprüfung</h2>
+<p>Die Bedingungen werden in dieser Reihenfolge geprüft, der erste Verstoß liefert den Fehlercode.
+Bei einem Fehler wird nichts weiter berechnet.</p>
+<table>
+<thead><tr><th>Bedingung für Fehler</th><th>Code</th></tr></thead>
+<tbody>
+<tr><td><var>ε</var> ≤ 0</td><td>109</td></tr>
+<tr><td><var>L</var><sub>P</sub> ≤ 0 oder <var>B</var><sub>P</sub> ≤ 0</td><td>101</td></tr>
+<tr><td><var>a</var><sub>F</sub> ≤ 0 oder <var>b</var><sub>F</sub> ≤ 0</td><td>102</td></tr>
+<tr><td>Muster unbekannt</td><td>103</td></tr>
+<tr><td>OriginCorner ∉ {1, 2, 3, 4}</td><td>104</td></tr>
+<tr><td>OrientationMode ∉ {0, 1, 2}</td><td>105</td></tr>
+<tr><td><var>g</var> &lt; 0 oder <var>u</var><sub>max</sub> &lt; 0</td><td>106</td></tr>
+<tr><td><var>s</var> ≤ 0 oder <var>h</var> &lt; 0</td><td>107</td></tr>
+<tr><td><var>p</var><sub>F</sub> ≤ 0, <var>p</var><sub>Q</sub> ≤ 0, <var>P</var><sub>F</sub> &lt; <var>p</var><sub>F</sub> oder <var>P</var><sub>Q</sub> &lt; <var>p</var><sub>Q</sub></td><td>108</td></tr>
+</tbody></table>
+</section>
+
+<section id="s1">
+<h2>4 · S1 Lang- und Kurzseite</h2>
+<div class="formula">
+<var>l</var> = max(<var>a</var><sub>F</sub>, <var>b</var><sub>F</sub>)&nbsp;&nbsp;&nbsp;&nbsp;
+<var>k</var> = min(<var>a</var><sub>F</sub>, <var>b</var><sub>F</sub>)<br>
+Hinweis „Kurzseite voran“ (Warnbit 4), wenn <var>a</var><sub>F</sub> &lt; <var>b</var><sub>F</sub> − <var>ε</var>
+</div>
+<p>Die Eingabe wird nicht getauscht: <var>a</var><sub>F</sub> und <var>b</var><sub>F</sub> bleiben
+für die Bestimmung der Drehung (S3) und der Saugplatte (S7) erhalten.</p>
+</section>
+
+<section id="s2" class="break">
+<h2>5 · S2 Musterauflösung</h2>
+<p>Ein Muster wird in eine <b>Blockliste</b> übersetzt. Ein Block ist ein Raster aus
+<var>n</var><sub>x</sub> × <var>n</var><sub>y</sub> gleich liegenden Kartons. Alle 18 Muster aus dem PDF
+haben den <b>Standardaufbau</b>: Block A links, optional Block B um 90° gedreht rechts daneben, oben bündig.</p>
+
+<h3>Zwei Orientierungsvarianten</h3>
+<p>Jedes Muster wird in beiden Varianten berechnet. (<var>p</var><sub>x</sub>, <var>p</var><sub>y</sub>)
+ist das Kartonmaß in X/Y in Block A:</p>
+<div class="formula">
+Variante X: (<var>p</var><sub>x</sub>, <var>p</var><sub>y</sub>) = (<var>l</var>, <var>k</var>)
+<span class="c">&nbsp;Langseite von Block A in X</span><br>
+Variante Y: (<var>p</var><sub>x</sub>, <var>p</var><sub>y</sub>) = (<var>k</var>, <var>l</var>)
+<span class="c">&nbsp;Langseite von Block A in Y</span><br>
+Block A: (<var>a</var>, <var>c</var>) = (<var>p</var><sub>x</sub>, <var>p</var><sub>y</sub>)&nbsp;&nbsp;&nbsp;
+Block B (gedreht): (<var>a</var>, <var>c</var>) = (<var>p</var><sub>y</sub>, <var>p</var><sub>x</sub>)
+</div>
+
+<h3>Blockmaß</h3>
+<div class="formula">
+<var>D</var>(<var>n</var>, <var>a</var>) = <var>n</var>·<var>a</var> + (<var>n</var> − 1)·<var>g</var>
+<span class="c">&nbsp;&nbsp;Ausdehnung von n Kartons der Größe a mit Spaltmaß g</span>
+</div>
+
+<h3>Standardaufbau (vor dem Zentrieren)</h3>
+<figure>
+<svg viewBox="0 0 560 260" role="img" aria-label="Standardaufbau mit Block A und Block B">
+  <rect class="pallet" x="40" y="20" width="330" height="220"/>
+  <rect class="b0" x="60" y="40" width="180" height="60"/><rect class="b0" x="60" y="100" width="180" height="60"/>
+  <rect class="b0" x="60" y="160" width="180" height="60"/>
+  <rect class="b90" x="240" y="40" width="60" height="150"/><rect class="b90" x="300" y="40" width="60" height="150"/>
+  <text x="150" y="75" font-size="13" text-anchor="middle">A.1.3</text>
+  <text x="150" y="135" font-size="13" text-anchor="middle">A.1.2</text>
+  <text x="150" y="195" font-size="13" text-anchor="middle">A.1.1</text>
+  <text x="270" y="120" font-size="13" text-anchor="middle">B.1.1</text>
+  <text x="330" y="120" font-size="13" text-anchor="middle">B.2.1</text>
+  <text class="muted" x="300" y="210" font-size="12" text-anchor="middle">Lücke</text>
+  <line class="thin" x1="60" y1="232" x2="240" y2="232"/><text x="150" y="252" font-size="12" text-anchor="middle">D(n_x,A, p_x)</text>
+  <line class="thin" x1="240" y1="232" x2="360" y2="232"/><text x="300" y="252" font-size="12" text-anchor="middle">D(n_x,B, p_y)</text>
+  <line class="thin" x1="385" y1="40" x2="385" y2="220"/><text x="392" y="134" font-size="12">W_Y = max(H_A, H_B)</text>
+  <line class="thin" x1="370" y1="40" x2="370" y2="190"/>
+  <text x="392" y="60" font-size="12">H_A = D(n_y,A, p_y)</text>
+  <text x="392" y="80" font-size="12">H_B = D(n_y,B, p_x)</text>
+  <text x="392" y="190" font-size="12" class="muted">oben bündig</text>
+</svg>
+<figcaption>Beispiel EU36 „1x3+2x1“: Block A 1 × 3 in Grundorientierung, Block B 2 × 1 gedreht.</figcaption>
+</figure>
+<div class="formula">
+<var>H</var><sub>A</sub> = <var>D</var>(<var>n</var><sub>y,A</sub>, <var>p</var><sub>y</sub>)&nbsp;&nbsp;&nbsp;
+<var>H</var><sub>B</sub> = <var>D</var>(<var>n</var><sub>y,B</sub>, <var>p</var><sub>x</sub>)&nbsp;&nbsp;&nbsp;
+<var>H</var> = max(<var>H</var><sub>A</sub>, <var>H</var><sub>B</sub>)<br>
+Block A: <var>x</var><sub>0</sub> = 0,&nbsp; <var>y</var><sub>0</sub> = <var>H</var> − <var>H</var><sub>A</sub><br>
+Block B: <var>x</var><sub>0</sub> = <var>D</var>(<var>n</var><sub>x,A</sub>, <var>p</var><sub>x</sub>) + <var>g</var>,&nbsp;
+<var>y</var><sub>0</sub> = <var>H</var> − <var>H</var><sub>B</sub><br>
+Ohne Block B: nur Block A mit <var>x</var><sub>0</sub> = <var>y</var><sub>0</sub> = 0
+</div>
+<p class="note">Muster, die nicht in den Standardaufbau passen, liefern ihre Blockliste über ein
+Python-Plugin (z. B. Windmühle). Ab S3 ist die Rechnung für alle Muster gleich.</p>
+</section>
+
+<section id="s3">
+<h2>6 · S3 Kartonpositionen und Drehung</h2>
+<p>Für jeden Block, jede Spalte <var>i</var> = 0 … <var>n</var><sub>x</sub>−1 und jede Reihe
+<var>j</var> = 0 … <var>n</var><sub>y</sub>−1 (Bezeichnung „Block.Spalte.Reihe“ zählt ab 1):</p>
+<div class="formula">
+<var>x</var> = <var>x</var><sub>0</sub> + <var>i</var>·(<var>a</var> + <var>g</var>) + <var>a</var>/2<br>
+<var>y</var> = <var>y</var><sub>0</sub> + <var>j</var>·(<var>c</var> + <var>g</var>) + <var>c</var>/2
+</div>
+<p>Drehung (bezogen auf das Förderband, Förderrichtung ∥ X bei 0°):</p>
+<div class="formula">
+Rot = 0, wenn |<var>a</var> − <var>a</var><sub>F</sub>| ≤ <var>ε</var> und |<var>c</var> − <var>b</var><sub>F</sub>| ≤ <var>ε</var>;
+sonst Rot = 90<br>
+<span class="c">Quadratischer Karton (a_F = b_F): immer Rot = 0.</span>
+</div>
+</section>
+
+<section id="s4" class="break">
+<h2>7 · S4 Zentrieren, Überstand, Variante</h2>
+<h3>Lagenmaß und Zentrieren</h3>
+<div class="formula">
+<var>x</var><sub>min</sub> = min(<var>x</var><sub>0</sub>), <var>x</var><sub>max</sub> = max(<var>x</var><sub>0</sub> + Blockbreite) über alle Blöcke, ebenso in Y<br>
+<var>W</var><sub>X</sub> = <var>x</var><sub>max</sub> − <var>x</var><sub>min</sub>&nbsp;&nbsp;&nbsp;
+<var>W</var><sub>Y</sub> = <var>y</var><sub>max</sub> − <var>y</var><sub>min</sub><br>
+Versatz: Δ<var>x</var> = (<var>L</var><sub>P</sub> − <var>W</var><sub>X</sub>)/2 − <var>x</var><sub>min</sub>,&nbsp;
+Δ<var>y</var> = (<var>B</var><sub>P</sub> − <var>W</var><sub>Y</sub>)/2 − <var>y</var><sub>min</sub>
+<span class="c">&nbsp;→ zu allen x<sub>0</sub>, y<sub>0</sub> addieren</span>
+</div>
+<h3>Überstand</h3>
+<div class="formula">
+je Seite: <var>ü</var><sub>X</sub> = max(0, <var>W</var><sub>X</sub> − <var>L</var><sub>P</sub>)/2,&nbsp;
+<var>ü</var><sub>Y</sub> = max(0, <var>W</var><sub>Y</sub> − <var>B</var><sub>P</sub>)/2<br>
+Rangkriterium: <var>Ü</var> = max(0, <var>W</var><sub>X</sub> − <var>L</var><sub>P</sub>) + max(0, <var>W</var><sub>Y</sub> − <var>B</var><sub>P</sub>)<br>
+Warnbit 0 für einen Karton, wenn
+<var>x</var><sub>1</sub> &lt; −(<var>u</var><sub>max</sub>+<var>ε</var>) oder
+<var>x</var><sub>2</sub> &gt; <var>L</var><sub>P</sub> + <var>u</var><sub>max</sub> + <var>ε</var> (Y analog)<br>
+Warnbit 1, wenn das Muster nur einen Karton hat und dieser größer als die Palette ist
+</div>
+<h3>Plausibilität</h3>
+<p>Kein Kartonpaar darf sich überlappen (Test wie in S6), sonst Fehler 203. Mehr als 100 Kartons:
+Fehler 201; mehr als 8 Blöcke: Fehler 202.</p>
+<h3>Wahl der Variante</h3>
+<table>
+<thead><tr><th>Schritt</th><th>Regel</th></tr></thead>
+<tbody>
+<tr><td>0</td><td>OrientationMode = 1 → Variante X, = 2 → Variante Y (fest vorgegeben)</td></tr>
+<tr><td>1</td><td>kleineres <var>Ü</var> gewinnt (Unterschied &gt; <var>ε</var>)</td></tr>
+<tr><td>2</td><td>weniger Kartons mit Rot = 90 gewinnt</td></tr>
+<tr><td>3</td><td>Orientierung laut Zeichnung (drawn_long_side des Musters)</td></tr>
+</tbody></table>
+<p>Ist nur eine Variante darstellbar (Plugin liefert „nicht darstellbar“), wird diese genommen;
+ist keine darstellbar: Fehler 204.</p>
+</section>
+
+<section id="s5">
+<h2>8 · S5 Ablagereihenfolge</h2>
+<p>Grundsatz: <b>dichter Teil zuerst</b>, der lockere Teil (z. B. der einzelne gedrehte Karton) zuletzt.</p>
+<h3>Lockerer Teil</h3>
+<div class="formula">
+<var>N</var><sub>max</sub> = größte Kartonanzahl eines Blocks; locker = alle Blöcke mit weniger Kartons<br>
+Schwerpunkt: <var>x</var><sub>L</sub> = Mittelwert der <var>x</var> aller lockeren Kartons, <var>y</var><sub>L</sub> ebenso
+</div>
+<h3>Lücke</h3>
+<div class="formula">
+<var>A</var><sub>Lücke</sub> = <var>W</var><sub>X</sub>·<var>W</var><sub>Y</sub> − Σ <var>a</var><sub>i</sub>·<var>c</var><sub>i</sub><br>
+<var>x</var><sub>G</sub> = (<var>W</var><sub>X</sub>·<var>W</var><sub>Y</sub>·<var>x</var><sub>M</sub> − Σ <var>a</var><sub>i</sub><var>c</var><sub>i</sub>·<var>x</var><sub>i</sub>) / <var>A</var><sub>Lücke</sub>
+<span class="c">&nbsp;(y<sub>G</sub> analog; (x<sub>M</sub>, y<sub>M</sub>) = Palettenmitte = Lagenmitte)</span><br>
+Lücke vorhanden, wenn <var>A</var><sub>Lücke</sub> &gt; <var>ε</var>·(<var>W</var><sub>X</sub> + <var>W</var><sub>Y</sub>)
+</div>
+<h3>Startecke</h3>
+<table>
+<thead><tr><th>Seite</th><th>Regel (erste zutreffende Zeile gilt)</th></tr></thead>
+<tbody>
+<tr><td rowspan="3">X</td><td>lockerer Teil rechts (<var>x</var><sub>L</sub> &gt; <var>x</var><sub>M</sub> + <var>ε</var>) → Start links; links → Start rechts</td></tr>
+<tr><td>sonst Lücke rechts (<var>x</var><sub>G</sub> &gt; <var>x</var><sub>M</sub> + <var>ε</var>) → Start links; links → Start rechts</td></tr>
+<tr><td>sonst Seite des Palettennullpunkts</td></tr>
+<tr><td rowspan="3">Y</td><td>Lücke unten (<var>y</var><sub>G</sub> &lt; <var>y</var><sub>M</sub> − <var>ε</var>) → Start oben; oben → Start unten</td></tr>
+<tr><td>sonst lockerer Teil oben → Start unten; unten → Start oben</td></tr>
+<tr><td>sonst Seite des Palettennullpunkts</td></tr>
+</tbody></table>
+<p>Ist im Muster eine Startecke vorgegeben, gilt diese.</p>
+<h3>Reihenfolge</h3>
+<ol>
+<li>Blöcke sortiert nach: mehr Kartons zuerst, dann kleinerer Abstand
+|<var>x</var><sub>Blockmitte</sub> − <var>x</var><sub>Start</sub>| + |<var>y</var><sub>Blockmitte</sub> − <var>y</var><sub>Start</sub>|,
+dann Reihenfolge der Definition.</li>
+<li>Innerhalb eines Blocks spaltenweise (Standard) oder reihenweise, jeweils von der Startecke weg:
+Start rechts → Spalten absteigend, Start oben → Reihen absteigend.</li>
+<li>Eine im Muster vorgegebene komplette Reihenfolge ersetzt 1 und 2 (muss alle Kartons genau einmal
+enthalten, sonst Fehler 205).</li>
+</ol>
+</section>
+
+<section id="s6" class="break">
+<h2>9 · S6 Annäherungsrichtung</h2>
+<p>Der Winkel <var>θ</var> gibt an, <b>aus welcher Richtung</b> der Karton kommt. Betrachtet werden nur
+Kartons, die in der Reihenfolge <b>vor</b> dem aktuellen Karton abgelegt wurden.</p>
+<figure>
+<svg viewBox="0 0 560 250" role="img" aria-label="Acht Prüfzonen um einen Karton">
+  <rect class="zone" x="330" y="75" width="36" height="100"/>
+  <rect class="zone" x="330" y="39" width="36" height="36"/>
+  <rect class="zone" x="190" y="39" width="140" height="36"/>
+  <rect class="zone" x="154" y="39" width="36" height="36"/>
+  <rect class="zone occ" x="154" y="75" width="36" height="100"/>
+  <rect class="zone occ" x="154" y="175" width="36" height="36"/>
+  <rect class="zone occ" x="190" y="175" width="140" height="36"/>
+  <rect class="zone" x="330" y="175" width="36" height="36"/>
+  <rect class="b0" x="190" y="75" width="140" height="100"/>
+  <text x="348" y="130" font-size="12" text-anchor="middle">0 O</text>
+  <text x="348" y="61" font-size="11" text-anchor="middle">1</text>
+  <text x="260" y="61" font-size="12" text-anchor="middle">2 N</text>
+  <text x="172" y="61" font-size="11" text-anchor="middle">3</text>
+  <text x="172" y="130" font-size="12" text-anchor="middle">4 W</text>
+  <text x="172" y="197" font-size="11" text-anchor="middle">5</text>
+  <text x="260" y="197" font-size="12" text-anchor="middle">6 S</text>
+  <text x="348" y="197" font-size="11" text-anchor="middle">7</text>
+  <line class="ln" x1="316" y1="89" x2="280" y2="113"/><polygon class="head" points="273,118 281,106 287,116"/>
+  <text x="260" y="140" font-size="12" text-anchor="middle">Karton</text>
+  <text x="40" y="238" font-size="12" class="muted">Beispiel: Zonen W, SW, S belegt → v = (1,707; 1,707) → Anfahrt aus NO (45°)</text>
+  <line class="thin" x1="366" y1="75" x2="400" y2="75"/><line class="thin" x1="366" y1="39" x2="400" y2="39"/>
+  <text x="404" y="61" font-size="12">Tiefe s</text>
+</svg>
+<figcaption>Acht Prüfzonen der Tiefe <var>s</var>; Zone <var>k</var> liegt in Richtung <var>k</var>·45°.</figcaption>
+</figure>
+<h3>Prüfzonen</h3>
+<p>Karton [<var>x</var><sub>1</sub>, <var>x</var><sub>2</sub>] × [<var>y</var><sub>1</sub>, <var>y</var><sub>2</sub>]:</p>
+<table>
+<thead><tr><th>k</th><th>Zone</th><th>X-Bereich</th><th>Y-Bereich</th></tr></thead>
+<tbody>
+<tr><td>0</td><td>O</td><td>[x<sub>2</sub>, x<sub>2</sub>+s]</td><td>[y<sub>1</sub>, y<sub>2</sub>]</td></tr>
+<tr><td>1</td><td>NO</td><td>[x<sub>2</sub>, x<sub>2</sub>+s]</td><td>[y<sub>2</sub>, y<sub>2</sub>+s]</td></tr>
+<tr><td>2</td><td>N</td><td>[x<sub>1</sub>, x<sub>2</sub>]</td><td>[y<sub>2</sub>, y<sub>2</sub>+s]</td></tr>
+<tr><td>3</td><td>NW</td><td>[x<sub>1</sub>−s, x<sub>1</sub>]</td><td>[y<sub>2</sub>, y<sub>2</sub>+s]</td></tr>
+<tr><td>4</td><td>W</td><td>[x<sub>1</sub>−s, x<sub>1</sub>]</td><td>[y<sub>1</sub>, y<sub>2</sub>]</td></tr>
+<tr><td>5</td><td>SW</td><td>[x<sub>1</sub>−s, x<sub>1</sub>]</td><td>[y<sub>1</sub>−s, y<sub>1</sub>]</td></tr>
+<tr><td>6</td><td>S</td><td>[x<sub>1</sub>, x<sub>2</sub>]</td><td>[y<sub>1</sub>−s, y<sub>1</sub>]</td></tr>
+<tr><td>7</td><td>SO</td><td>[x<sub>2</sub>, x<sub>2</sub>+s]</td><td>[y<sub>1</sub>−s, y<sub>1</sub>]</td></tr>
+</tbody></table>
+<h3>Überlappung zweier Rechtecke</h3>
+<div class="formula">
+<var>o</var><sub>x</sub> = min(<var>A</var><sub>x2</sub>, <var>B</var><sub>x2</sub>) − max(<var>A</var><sub>x1</sub>, <var>B</var><sub>x1</sub>)&nbsp;&nbsp;&nbsp;
+<var>o</var><sub>y</sub> = min(<var>A</var><sub>y2</sub>, <var>B</var><sub>y2</sub>) − max(<var>A</var><sub>y1</sub>, <var>B</var><sub>y1</sub>)<br>
+überlappend ⇔ <var>o</var><sub>x</sub> &gt; <var>ε</var> UND <var>o</var><sub>y</sub> &gt; <var>ε</var>
+<span class="c">&nbsp;(reine Berührung an Kante oder Ecke zählt nicht)</span>
+</div>
+<h3>Nachbarmaske und freie Richtungen</h3>
+<div class="formula">
+Maske Bit <var>k</var> = 1 ⇔ ein abgelegter Karton überlappt Zone <var>k</var><br>
+gerade Richtung (<var>k</var> = 0, 2, 4, 6) frei ⇔ Bit <var>k</var> = 0<br>
+Diagonale (<var>k</var> = 1, 3, 5, 7) frei ⇔ Bits <var>k</var>−1, <var>k</var>, <var>k</var>+1 = 0
+<span class="c">&nbsp;(Indizes mod 8)</span>
+</div>
+<h3>Wunschrichtung und Auswahl</h3>
+<div class="formula">
+<var>v</var> = − Σ<sub>Bit k = 1</sub> <var>u</var><sub>k</sub>
+<span class="c">&nbsp;weg von den Nachbarn, in die „Ecke“ hineingleiten</span><br>
+<var>w</var> = (<var>x</var> − <var>L</var><sub>P</sub>/2, <var>y</var> − <var>B</var><sub>P</sub>/2) / |…|
+<span class="c">&nbsp;Palettenmitte → Karton, normiert (0, wenn |…| ≤ ε)</span><br>
+Ist |<var>v</var>| ≤ 10<sup>−6</sup>: <var>v</var> := <var>w</var> (von außen anfahren)<br>
+Kandidaten = freie Richtungen; gibt es keine: Richtungen mit den wenigsten belegten Zonen im Weg (Warnbit 2)<br>
+Durchlauf in der Rangfolge <var>k</var> = 1, 3, 5, 7, 0, 2, 4, 6; ein Kandidat ersetzt den bisher besten, wenn<br>
+&nbsp;&nbsp;<var>u</var><sub>k</sub>·<var>v</var> &gt; bisher + 10<sup>−6</sup>&nbsp; oder&nbsp;
+(<var>u</var><sub>k</sub>·<var>v</var> gleich (±10<sup>−6</sup>) und <var>u</var><sub>k</sub>·<var>w</var> &gt; bisher + 10<sup>−6</sup>)<br>
+<var>θ</var> = <var>k</var>·45°
+</div>
+<h3>Vorposition</h3>
+<div class="formula">
+Vorposition = Ziel + (<var>s</var>·DIR_X[<var>k</var>], <var>s</var>·DIR_Y[<var>k</var>], <var>h</var>)
+<span class="c">&nbsp;Ausgabe PreDX, PreDY, PreDZ</span>
+</div>
+</section>
+
+<section id="s7">
+<h2>10 · S7 Saugplatte</h2>
+<p>Die Platte sitzt mittig auf dem Karton und dreht sich mit ihm. Maß in X/Y:</p>
+<div class="formula">
+Rot = 0: (<var>p</var><sub>F</sub>, <var>p</var><sub>Q</sub>)&nbsp;&nbsp;&nbsp; Rot = 90: (<var>p</var><sub>Q</sub>, <var>p</var><sub>F</sub>)
+<span class="c">&nbsp;ausgefahren entsprechend mit P<sub>F</sub>, P<sub>Q</sub></span>
+</div>
+<div class="formula">
+nötig = (<var>P</var><sub>F</sub> &gt; <var>p</var><sub>F</sub> + <var>ε</var> UND <var>a</var><sub>F</sub> &gt; <var>p</var><sub>F</sub> + <var>ε</var>)
+ODER (<var>P</var><sub>Q</sub> &gt; <var>p</var><sub>Q</sub> + <var>ε</var> UND <var>b</var><sub>F</sub> &gt; <var>p</var><sub>Q</sub> + <var>ε</var>)<br>
+<span class="c">Mit 600 × 400 → 600 × 1400: nötig ⇔ Kartonmaß quer zur Förderrichtung &gt; 400 mm</span><br>
+erlaubt = ausgefahrene Platte (mittig auf dem Karton) überlappt keinen bereits abgelegten Karton<br>
+ExtendPlate = nötig UND erlaubt;&nbsp;&nbsp; nötig UND NICHT erlaubt → Warnbit 3
+</div>
+</section>
+
+<section id="s8">
+<h2>11 · S8 Umrechnung auf den Palettennullpunkt</h2>
+<p>Das Muster liegt physikalisch fest. Die Koordinaten werden auf die gewählte Ecke gespiegelt,
+sodass alle Koordinaten auf der Palette positiv sind.</p>
+<table>
+<thead><tr><th>Nullpunkt</th><th>Ecke (<var>x</var><sub>E</sub>, <var>y</var><sub>E</sub>)</th><th><var>s</var><sub>x</sub></th><th><var>s</var><sub>y</sub></th><th>Winkel <var>θ</var>′</th></tr></thead>
+<tbody>
+<tr><td>E1</td><td>(0, 0)</td><td>+1</td><td>+1</td><td><var>θ</var></td></tr>
+<tr><td>E2</td><td>(<var>L</var><sub>P</sub>, 0)</td><td>−1</td><td>+1</td><td>(180° − <var>θ</var>) mod 360</td></tr>
+<tr><td>E3</td><td>(<var>L</var><sub>P</sub>, <var>B</var><sub>P</sub>)</td><td>−1</td><td>−1</td><td>(<var>θ</var> + 180°) mod 360</td></tr>
+<tr><td>E4</td><td>(0, <var>B</var><sub>P</sub>)</td><td>+1</td><td>−1</td><td>(360° − <var>θ</var>) mod 360</td></tr>
+</tbody></table>
+<div class="formula">
+<var>x</var>′ = <var>s</var><sub>x</sub>·(<var>x</var> − <var>x</var><sub>E</sub>)&nbsp;&nbsp;&nbsp;
+<var>y</var>′ = <var>s</var><sub>y</sub>·(<var>y</var> − <var>y</var><sub>E</sub>)<br>
+PreDX′ = <var>s</var><sub>x</sub>·PreDX&nbsp;&nbsp;&nbsp; PreDY′ = <var>s</var><sub>y</sub>·PreDY&nbsp;&nbsp;&nbsp; PreDZ′ = PreDZ<br>
+Rot bleibt unverändert (Spiegeln erhält die Achsparallelität).
+</div>
+</section>
+
+<section id="bsp" class="break">
+<h2>12 · Rechenbeispiel EU36</h2>
+<p>EU36 „1x3+2x1“, Karton <var>a</var><sub>F</sub> = 680 (Förderrichtung) × <var>b</var><sub>F</sub> = 260,
+EU-Palette 1200 × 800, Nullpunkt E1, übrige Werte Standard. Die Zahlen stimmen mit
+<code>examples/testvectors/EU36_680x260/</code> überein.</p>
+<h3>S1–S4</h3>
+<div class="formula">
+<var>l</var> = 680, <var>k</var> = 260<br>
+Variante X: (<var>p</var><sub>x</sub>, <var>p</var><sub>y</sub>) = (680, 260)<br>
+&nbsp;&nbsp;<var>H</var><sub>A</sub> = <var>D</var>(3, 260) = 780,&nbsp; <var>H</var><sub>B</sub> = <var>D</var>(1, 680) = 680,&nbsp; <var>H</var> = 780<br>
+&nbsp;&nbsp;A: <var>x</var><sub>0</sub> = 0, <var>y</var><sub>0</sub> = 0;&nbsp; B: <var>x</var><sub>0</sub> = <var>D</var>(1, 680) + 0 = 680, <var>y</var><sub>0</sub> = 780 − 680 = 100<br>
+&nbsp;&nbsp;<var>W</var><sub>X</sub> = 680 + 2·260 = 1200,&nbsp; <var>W</var><sub>Y</sub> = 780&nbsp; → <var>Ü</var> = 0, 2 Kartons gedreht<br>
+Variante Y: (<var>p</var><sub>x</sub>, <var>p</var><sub>y</sub>) = (260, 680) → <var>W</var><sub>X</sub> = 1620, <var>W</var><sub>Y</sub> = 2040 → <var>Ü</var> = 420 + 1240 = 1660<br>
+→ <b>Variante X</b> (weniger Überstand)<br>
+Zentrieren: Δ<var>x</var> = (1200 − 1200)/2 − 0 = 0,&nbsp; Δ<var>y</var> = (800 − 780)/2 − 0 = 10
+&nbsp;→ A: (0, 10), B: (680, 110)<br>
+Karton A.1.3 (<var>i</var> = 0, <var>j</var> = 2): <var>x</var> = 0 + 0 + 340 = 340,&nbsp; <var>y</var> = 10 + 2·260 + 130 = 660,&nbsp; Rot = 0
+</div>
+<h3>S5</h3>
+<div class="formula">
+<var>N</var><sub>max</sub> = 3 (Block A) → locker: Block B, Schwerpunkt (940, 450) → rechts → <b>Start links</b><br>
+<var>A</var><sub>Lücke</sub> = 1200·780 − 5·680·260 = 936 000 − 884 000 = 52 000 mm²,&nbsp; Schwerpunkt (940, 60) → unten → <b>Start oben</b><br>
+Startecke E4 → Reihenfolge A.1.3, A.1.2, A.1.1, B.1.1, B.2.1
+</div>
+<h3>S6–S8</h3>
+<table>
+<thead><tr><th>Nr</th><th>Karton</th><th>X</th><th>Y</th><th>Rot</th><th>belegt</th><th><var>v</var></th><th><var>θ</var></th><th>PreDX</th><th>PreDY</th><th>Ausfahren</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>A.1.3</td><td class="n">340</td><td class="n">660</td><td class="n">0</td><td>–</td><td>(−0,71; 0,71) = <var>w</var></td><td class="n">135°</td><td class="n">−21,21</td><td class="n">21,21</td><td class="n">0</td></tr>
+<tr><td>2</td><td>A.1.2</td><td class="n">340</td><td class="n">400</td><td class="n">0</td><td>N</td><td>(0; −1)</td><td class="n">270°</td><td class="n">0</td><td class="n">−30</td><td class="n">0</td></tr>
+<tr><td>3</td><td>A.1.1</td><td class="n">340</td><td class="n">140</td><td class="n">0</td><td>N</td><td>(0; −1)</td><td class="n">270°</td><td class="n">0</td><td class="n">−30</td><td class="n">0</td></tr>
+<tr><td>4</td><td>B.1.1</td><td class="n">810</td><td class="n">450</td><td class="n">90</td><td>W, SW</td><td>(1,71; 0,71)</td><td class="n">0°</td><td class="n">30</td><td class="n">0</td><td class="n">0</td></tr>
+<tr><td>5</td><td>B.2.1</td><td class="n">1070</td><td class="n">450</td><td class="n">90</td><td>W</td><td>(1; 0)</td><td class="n">0°</td><td class="n">30</td><td class="n">0</td><td class="n">0</td></tr>
+</tbody></table>
+<p>Karton 4: O und NO haben beide <var>u</var>·<var>v</var> = 1,707. Entscheidend ist
+<var>w</var> = (0,973; 0,232): <var>u</var><sub>O</sub>·<var>w</var> = 0,973 &gt;
+<var>u</var><sub>NO</sub>·<var>w</var> = 0,852 → 0°.<br>
+Saugplatte: <var>b</var><sub>F</sub> = 260 ≤ 400 → nicht nötig → ExtendPlate = 0 für alle Kartons.<br>
+Nullpunkt E3 statt E1: Karton 1 → <var>x</var>′ = −(340 − 1200) = 860, <var>y</var>′ = −(660 − 800) = 140,
+<var>θ</var>′ = 135° + 180° = 315°.</p>
+</section>
+
+<section id="codes">
+<h2>13 · Fehlercodes, Warnbits, Konstanten</h2>
+<table>
+<thead><tr><th>Fehlercode</th><th>Bedeutung</th></tr></thead>
+<tbody>
+<tr><td>0</td><td>OK</td></tr>
+<tr><td>101 … 109</td><td>ungültige Eingaben (siehe S0)</td></tr>
+<tr><td>201</td><td>mehr Kartons als MAX_BOXES</td></tr>
+<tr><td>202</td><td>mehr Blöcke als MAX_BLOCKS</td></tr>
+<tr><td>203</td><td>Musterdefinition fehlerhaft: Kartons überlappen</td></tr>
+<tr><td>204</td><td>Muster in keiner Orientierung darstellbar</td></tr>
+<tr><td>205</td><td>vorgegebene Ablagereihenfolge passt nicht</td></tr>
+</tbody></table>
+<table>
+<thead><tr><th>Warnbit</th><th>Bedeutung</th><th>Stufe</th></tr></thead>
+<tbody>
+<tr><td>0</td><td>Überstand größer als erlaubt</td><td>S4</td></tr>
+<tr><td>1</td><td>Karton größer als die Palette</td><td>S4</td></tr>
+<tr><td>2</td><td>keine freie Anfahrrichtung</td><td>S6</td></tr>
+<tr><td>3</td><td>Saugplatte müsste ausfahren, Nachbarn blockieren</td><td>S7</td></tr>
+<tr><td>4</td><td>Hinweis: Karton kommt mit der Kurzseite voran</td><td>S1</td></tr>
+</tbody></table>
+<table>
+<thead><tr><th>Konstante</th><th>Wert</th></tr></thead>
+<tbody>
+<tr><td class="mono">MAX_BOXES</td><td>100</td></tr>
+<tr><td class="mono">MAX_BLOCKS</td><td>8</td></tr>
+<tr><td class="mono">MAX_PATTERNS</td><td>50</td></tr>
+<tr><td class="mono">DIAG</td><td>0,7071067811865476</td></tr>
+<tr><td class="mono">APPROACH_PRIORITY</td><td>1, 3, 5, 7, 0, 2, 4, 6</td></tr>
+<tr><td class="mono">DOT_EPS</td><td>10<sup>−6</sup></td></tr>
+</tbody></table>
+</section>
+</main>
+</body>
+</html>

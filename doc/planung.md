@@ -86,7 +86,6 @@ Im Pattern überschreibbar (Startecke, Füllrichtung, komplette Reihenfolge).
 - **nötig**: Karton ist in der Ausfahrachse (quer) länger als die Grundplatte (400 mm).
 - **erlaubt**: ausgefahrene Platte überdeckt keinen bereits abgelegten Karton.
 - **Ausfahren = nötig UND erlaubt**; nötig, aber nicht erlaubt → Warnung.
-- Warnung, wenn die verwendete Platte einen abgelegten Karton überdeckt.
 
 ## Technik
 
@@ -103,7 +102,7 @@ Im Pattern überschreibbar (Startecke, Füllrichtung, komplette Reihenfolge).
 |---|---|---|
 | M1 | Rechenkern, Muster, Orientierung, Nullpunkt | erledigt |
 | M2 | Reihenfolge, Anfahrrichtung, Saugplatte, Warnungen | erledigt |
-| M3 | Exporte und SCL-Testvektoren | offen |
+| M3 | Exporte und SCL-Testvektoren (Formate einzeln einstellbar) | erledigt |
 | M4 | Report und Visualisierung inkl. PDF | erledigt |
-| M5 | Formelsammlung und SPS-Leitfaden | offen |
-| M6 | Musterassistent und Streamlit-Oberfläche | offen |
+| M5 | Formelsammlung und SPS-Leitfaden | erledigt |
+| M6 | Musterassistent und Streamlit-Oberfläche | erledigt |

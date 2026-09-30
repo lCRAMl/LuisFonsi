@@ -4,6 +4,9 @@ Beispiele:
     python -m palletizer list
     python -m palletizer calc --pattern EU36 --box 680x260
     python -m palletizer calc --config examples/eu36.toml --origin 3
+    python -m palletizer calc --pattern EU36 --box 680x260 --export json,csv,scl,pdf
+    python -m palletizer testvectors
+    python -m palletizer export-patterns
 """
 
 from __future__ import annotations
@@ -13,14 +16,17 @@ import sys
 import tomllib
 from pathlib import Path
 
+from .assistant import Suggestion, suggest
 from .calculator import calculate
 from .constants import ERROR_TEXTS, warning_texts
+from .export import ExportOptions, parse_formats, patterns_scl, run_suite, write_exports
 from .model import Inputs, LayerResult
 from .patterns import PatternError, PatternLibrary
-from .report import PdfError, build_report, html_to_pdf
+from .report import PdfError, html_to_pdf
 
 CORNER_NAMES = {1: "E1 (unten links)", 2: "E2 (unten rechts)",
                 3: "E3 (oben rechts)", 4: "E4 (oben links)"}
+PROJECT_DIR = Path(__file__).resolve().parents[2]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -34,35 +40,60 @@ def main(argv: list[str] | None = None) -> int:
     except PatternError as exc:
         print(f"Fehler in der Pattern-Bibliothek: {exc}", file=sys.stderr)
         return 2
+
     if args.command == "list":
         print(format_pattern_list(library))
         return 0
+    if args.command == "export-patterns":
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(patterns_scl(library), encoding="utf-8-sig")
+        print(f"Geschrieben: {args.out}")
+        return 0
+    if args.command == "gui":
+        return run_gui()
+    if args.command == "suggest":
+        try:
+            base = build_suggest_inputs(args)
+        except ValueError as exc:
+            print(f"Fehler in den Eingaben: {exc}", file=sys.stderr)
+            return 2
+        print(format_suggestions(suggest(library, base), args.top))
+        return 0
+    if args.command == "docs":
+        try:
+            pdf = html_to_pdf(PROJECT_DIR / "doc" / "formelsammlung.html",
+                              args.out / "formelsammlung.pdf")
+        except PdfError as exc:
+            print(f"PDF nicht erzeugt: {exc}", file=sys.stderr)
+            return 3
+        print(f"Geschrieben: {pdf}")
+        return 0
+    if args.command == "testvectors":
+        try:
+            written = run_suite(args.suite, args.out, library)
+        except (OSError, ValueError, TypeError, tomllib.TOMLDecodeError) as exc:
+            print(f"Fehler in der Fallsammlung: {exc}", file=sys.stderr)
+            return 2
+        print(f"{len(written)} Dateien nach {args.out} geschrieben")
+        return 0
+
     try:
-        inputs = build_inputs(args)
+        inputs, options = build_inputs(args)
     except (OSError, ValueError, TypeError, tomllib.TOMLDecodeError) as exc:
         print(f"Fehler in den Eingaben: {exc}", file=sys.stderr)
         return 2
     result = calculate(inputs, library)
     print(format_result(result))
-    if args.html is not None or args.pdf is not None:
-        try:
-            write_report(result, args.html, args.pdf)
-        except (OSError, PdfError) as exc:
-            print(f"Report nicht erzeugt: {exc}", file=sys.stderr)
-            return 3
+    try:
+        written = write_exports(result, options, library)
+    except (OSError, PdfError) as exc:
+        print(f"Export fehlgeschlagen: {exc}", file=sys.stderr)
+        return 3
+    if written:
+        print("\nExport:")
+        for path in written:
+            print(f"  {path}")
     return 0 if result.ok else 1
-
-
-def write_report(result: LayerResult, html_path: Path | None, pdf_path: Path | None) -> None:
-    """Schreibt den HTML-Report und erzeugt daraus bei Bedarf das PDF."""
-    if html_path is None:
-        html_path = pdf_path.with_suffix(".html")
-    html_path.parent.mkdir(parents=True, exist_ok=True)
-    html_path.write_text(build_report(result), encoding="utf-8")
-    print(f"Report: {html_path}")
-    if pdf_path is not None:
-        html_to_pdf(html_path, pdf_path)
-        print(f"PDF:    {pdf_path}")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -74,7 +105,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("list", help="Alle Layerpatterns auflisten")
 
     calc = sub.add_parser("calc", help="Eine Lage berechnen")
-    calc.add_argument("--config", type=Path, help="TOML-Datei mit Eingabeparametern")
+    calc.add_argument("--config", type=Path, help="TOML-Datei mit Eingabeparametern und [export]")
     calc.add_argument("--pattern", help="Pattern-ID oder -Nummer, z. B. EU36 oder 36")
     calc.add_argument("--box", help="Karton 'in Förderrichtung x quer', z. B. 680x260")
     calc.add_argument("--pallet", help="Palette 'Länge x Breite', z. B. 1200x800")
@@ -84,18 +115,44 @@ def build_parser() -> argparse.ArgumentParser:
     calc.add_argument("--max-overhang", type=float, help="erlaubter Überstand je Seite in mm")
     calc.add_argument("--approach-dist", type=float, help="Abstand der Vorposition in mm")
     calc.add_argument("--approach-height", type=float, help="Höhe der Vorposition in mm")
-    calc.add_argument("--html", type=Path, help="HTML-Report schreiben, z. B. output/eu36.html")
-    calc.add_argument("--pdf", type=Path, help="PDF-Report schreiben (über Edge/Chrome), "
-                                               "z. B. output/eu36.pdf")
+    calc.add_argument("--export", help="Exportformate, z. B. json,csv,scl,scl_patterns,testvector,"
+                                       "html,pdf oder all / none (ersetzt die Auswahl aus --config)")
+    calc.add_argument("--out", type=Path, help="Zielordner der Exporte (Standard: output)")
+    calc.add_argument("--name", help="Dateiname der Exporte ohne Endung (Standard: automatisch)")
+
+    vectors = sub.add_parser("testvectors", help="Testvektoren für die SPS erzeugen")
+    vectors.add_argument("--suite", type=Path, default=PROJECT_DIR / "examples" / "testvectors.toml",
+                         help="Fallsammlung (Standard: examples/testvectors.toml)")
+    vectors.add_argument("--out", type=Path, default=PROJECT_DIR / "examples" / "testvectors",
+                         help="Zielordner (Standard: examples/testvectors)")
+
+    sug = sub.add_parser("suggest", help="Musterassistent: passende Layerpatterns vorschlagen")
+    sug.add_argument("--box", required=True, help="Karton 'in Förderrichtung x quer', z. B. 680x260")
+    sug.add_argument("--pallet", default="1200x800", help="Palette 'Länge x Breite'")
+    sug.add_argument("--gap", type=float, default=0.0, help="Spaltmaß in mm")
+    sug.add_argument("--max-overhang", type=float, default=0.0, help="erlaubter Überstand je Seite")
+    sug.add_argument("--top", type=int, default=0, help="nur die besten N anzeigen (0 = alle)")
+
+    sub.add_parser("gui", help="Bedienoberfläche im Browser starten (Streamlit)")
+
+    docs = sub.add_parser("docs", help="Formelsammlung als PDF erzeugen")
+    docs.add_argument("--out", type=Path, default=Path("output"),
+                      help="Zielordner (Standard: output)")
+
+    pats = sub.add_parser("export-patterns", help="Musterdefinitionen als SCL-DB exportieren")
+    pats.add_argument("--out", type=Path, default=Path("output") / "DB_PalPatterns.scl",
+                      help="Zieldatei (Standard: output/DB_PalPatterns.scl)")
     return parser
 
 
-def build_inputs(args: argparse.Namespace) -> Inputs:
+def build_inputs(args: argparse.Namespace) -> tuple[Inputs, ExportOptions]:
     """Eingaben zusammensetzen: Standardwerte <- Konfigurationsdatei <- Kommandozeile."""
     values: dict = {}
+    export_values: dict = {}
     if args.config is not None:
         with args.config.open("rb") as handle:
             values.update(tomllib.load(handle))
+        export_values = values.pop("export", {})
     if args.pattern is not None:
         values["pattern"] = args.pattern
     if args.box is not None:
@@ -111,7 +168,47 @@ def build_inputs(args: argparse.Namespace) -> Inputs:
     for key in ("pattern", "box_length_conv", "box_width_conv"):
         if key not in values:
             raise ValueError(f"'{key}' fehlt (per --config oder Kommandozeile angeben)")
-    return Inputs.from_dict(values)
+
+    options = ExportOptions.from_dict(export_values)
+    if args.export is not None:
+        options.formats = parse_formats(args.export)
+    if args.out is not None:
+        options.out_dir = args.out
+    if args.name is not None:
+        options.name = args.name
+    return Inputs.from_dict(values), options
+
+
+def build_suggest_inputs(args: argparse.Namespace) -> Inputs:
+    conv, cross = parse_size(args.box)
+    length, width = parse_size(args.pallet)
+    return Inputs(box_length_conv=conv, box_width_conv=cross, pattern="", pallet_length=length,
+                  pallet_width=width, gap=args.gap, max_overhang=args.max_overhang)
+
+
+def format_suggestions(suggestions: list[Suggestion], top: int = 0) -> str:
+    if top > 0:
+        suggestions = suggestions[:top]
+    lines = [f"{'Rang':>4}  {'Muster':<6} {'Name':<18} {'Kartons':>7}  {'passt':<5} "
+             f"{'Var.':<4} {'Überstand X/Y':>14}  {'Fläche':>7}  {'gedreht':>7}"]
+    for rank, s in enumerate(suggestions, start=1):
+        r = s.result
+        lines.append(f"{rank:>4}  {s.pattern_id:<6} {s.name[:18]:<18} {r.box_count:>7}  "
+                     f"{'ja' if s.fits else 'nein':<5} {r.variant:<4} "
+                     f"{r.overhang_x:>6.1f} / {r.overhang_y:<6.1f} {r.area_usage:>6.1f} %  "
+                     f"{r.rotated_count:>7}")
+    return "\n".join(lines)
+
+
+def run_gui() -> int:
+    """Startet die Streamlit-Oberfläche."""
+    import importlib.util
+    import subprocess
+    if importlib.util.find_spec("streamlit") is None:
+        print("Streamlit ist nicht installiert: pip install -e .[gui]", file=sys.stderr)
+        return 2
+    app = Path(__file__).resolve().parent / "app.py"
+    return subprocess.call([sys.executable, "-m", "streamlit", "run", str(app)])
 
 
 def parse_size(text: str) -> tuple[float, float]:

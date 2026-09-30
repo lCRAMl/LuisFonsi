@@ -27,3 +27,18 @@ approach_dist = 30.0         # Versatz in X/Y
 approach_height = 20.0       # Versatz in Z
 
 tolerance = 0.1              # Toleranz eps für Vergleiche
+
+# Exporte: true = wird erzeugt, false = wird nicht erzeugt.
+# Auf der Kommandozeile ersetzt --export json,csv,... diese Auswahl (all / none möglich).
+[export]
+dir = "output"               # Zielordner
+name = ""                    # Dateiname ohne Endung, leer = automatisch (z. B. EU36_680x260_E1)
+json = false                 # vollständiges Ergebnis inkl. Zwischenergebnissen
+csv = false                  # Kartonliste für Excel
+scl = false                  # UDTs + DB "DB_PalLayer" für TIA Portal
+scl_patterns = false         # DB "DB_PalPatterns" mit allen Musterdefinitionen
+testvector = false           # alle Zwischenstufen als CSV (Vergleich mit der SCL-Umsetzung)
+html = false                 # Report
+pdf = false                  # Report als PDF (über Edge/Chrome)
+csv_delimiter = ";"
+csv_decimal = ","

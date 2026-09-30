@@ -7,9 +7,6 @@ ausgefahren symmetrisch auf 1400 quer).
     nötig   = Karton ist in einer Ausfahrachse länger als die Grundplatte
     erlaubt = ausgefahrene Platte überdeckt keinen bereits abgelegten Karton
     Ausfahren = nötig UND erlaubt      (nötig UND NICHT erlaubt -> Warnung)
-
-Zusätzlich wird gewarnt, wenn die tatsächlich verwendete Platte einen abgelegten
-Karton überdeckt (z. B. Grundplatte größer als ein schmaler Karton).
 """
 
 from __future__ import annotations
@@ -56,10 +53,4 @@ def evaluate_gripper(box: Box, placed: list[Box], inp: Inputs) -> GripperInfo:
     ext_x, ext_y = plate_size(box.rot, inp.plate_ext_conv, inp.plate_ext_cross)
     info.allowed = not covers_placed(box, ext_x, ext_y, placed, inp.tolerance)
     info.extend = info.needed and info.allowed
-
-    if info.extend:
-        used_x, used_y = ext_x, ext_y
-    else:
-        used_x, used_y = plate_size(box.rot, inp.plate_conv, inp.plate_cross)
-    info.plate_over_neighbor = covers_placed(box, used_x, used_y, placed, inp.tolerance)
     return info

@@ -7,8 +7,7 @@ from palletizer.calculator import calculate
 from palletizer.constants import (ERR_BOX_SIZE, ERR_ORIGIN_CORNER, ERR_PATTERN_UNKNOWN,
                                   ERR_SEQUENCE_OVERRIDE, ERR_TOO_MANY_BOXES,
                                   WARN_BOX_LARGER_THAN_PALLET, WARN_EXTEND_BLOCKED,
-                                  WARN_OVERHANG, WARN_PLATE_OVER_NEIGHBOR,
-                                  WARN_SHORT_SIDE_LEADING)
+                                  WARN_OVERHANG, WARN_SHORT_SIDE_LEADING)
 from palletizer.geometry import rect_overlap
 from palletizer.model import Inputs
 from palletizer.patterns import PatternLibrary
@@ -27,8 +26,7 @@ def test_eu36_full_result(library):
         ("B.1.1", 810, 450, 90, 0, False),
         ("B.2.1", 1070, 450, 90, 0, False),
     ]
-    # Karton 260 breit, Grundplatte 400 quer -> Platte ragt über den Nachbarn
-    assert result.boxes[1].warnings & WARN_PLATE_OVER_NEIGHBOR
+    assert result.warnings == 0
 
 
 def test_eu36_origin_e3(library):

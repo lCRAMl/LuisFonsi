@@ -1,0 +1,216 @@
+# Fallsammlung für die Testvektoren der SPS.
+# Erzeugen:  python -m palletizer testvectors
+# Ergebnis:  examples/testvectors/<name>/*.csv  und  examples/testvectors/index.csv
+#
+# Jeder Fall enthält die Eingabeparameter wie in config/defaults.toml,
+# nicht angegebene Parameter haben die Standardwerte.
+
+# --- Alle 18 Muster aus dem PDF mit einem passenden Karton -------------------
+[[case]]
+name = "EU01_1100x700"
+description = "EU01 1x1"
+pattern = "EU01"
+box_length_conv = 1100
+box_width_conv = 700
+
+[[case]]
+name = "EU02_780x580"
+description = "EU02 2x1, Variante Y"
+pattern = "EU02"
+box_length_conv = 780
+box_width_conv = 580
+
+[[case]]
+name = "EU03_580x390"
+description = "EU03 2x2"
+pattern = "EU03"
+box_length_conv = 580
+box_width_conv = 390
+
+[[case]]
+name = "EU04_400x300"
+description = "EU04 3x2, beide Varianten ohne Überstand, weniger Drehungen -> X"
+pattern = "EU04"
+box_length_conv = 400
+box_width_conv = 300
+
+[[case]]
+name = "EU05_390x290"
+description = "EU05 4x2"
+pattern = "EU05"
+box_length_conv = 390
+box_width_conv = 290
+
+[[case]]
+name = "EU06_1150x390"
+description = "EU06 1x2"
+pattern = "EU06"
+box_length_conv = 1150
+box_width_conv = 390
+
+[[case]]
+name = "EU07_780x390"
+description = "EU07 3x1"
+pattern = "EU07"
+box_length_conv = 780
+box_width_conv = 390
+
+[[case]]
+name = "EU09_390x260"
+description = "EU09 3x3"
+pattern = "EU09"
+box_length_conv = 390
+box_width_conv = 260
+
+[[case]]
+name = "EU11_590x260"
+description = "EU11 2x3"
+pattern = "EU11"
+box_length_conv = 590
+box_width_conv = 260
+
+[[case]]
+name = "EU13_600x400"
+description = "EU13 1x2+1x1 gemischt"
+pattern = "EU13"
+box_length_conv = 600
+box_width_conv = 400
+
+[[case]]
+name = "EU15_450x260"
+description = "EU15 2x3+1x1 gemischt"
+pattern = "EU15"
+box_length_conv = 450
+box_width_conv = 260
+
+[[case]]
+name = "EU16_390x230"
+description = "EU16 5x2"
+pattern = "EU16"
+box_length_conv = 390
+box_width_conv = 230
+
+[[case]]
+name = "EU20_780x290"
+description = "EU20 4x1"
+pattern = "EU20"
+box_length_conv = 780
+box_width_conv = 290
+
+[[case]]
+name = "EU26_450x300"
+description = "EU26 2x2+1x1 gemischt"
+pattern = "EU26"
+box_length_conv = 450
+box_width_conv = 300
+
+[[case]]
+name = "EU28_500x200"
+description = "EU28 2x4+1x1 gemischt, passt exakt auf 1200"
+pattern = "EU28"
+box_length_conv = 500
+box_width_conv = 200
+
+[[case]]
+name = "EU29_660x240"
+description = "EU29 5x1"
+pattern = "EU29"
+box_length_conv = 660
+box_width_conv = 240
+
+[[case]]
+name = "EU36_680x260"
+description = "EU36 1x3+2x1 gemischt"
+pattern = "EU36"
+box_length_conv = 680
+box_width_conv = 260
+
+[[case]]
+name = "EU96_640x200"
+description = "EU96 1x4+2x1 gemischt"
+pattern = "EU96"
+box_length_conv = 640
+box_width_conv = 200
+
+# --- Palettennullpunkt -------------------------------------------------------
+[[case]]
+name = "EU36_680x260_E2"
+description = "Nullpunkt E2 (Spiegeln in X)"
+pattern = "EU36"
+box_length_conv = 680
+box_width_conv = 260
+origin_corner = 2
+
+[[case]]
+name = "EU36_680x260_E3"
+description = "Nullpunkt E3 (Spiegeln in X und Y)"
+pattern = "EU36"
+box_length_conv = 680
+box_width_conv = 260
+origin_corner = 3
+
+[[case]]
+name = "EU36_680x260_E4"
+description = "Nullpunkt E4 (Spiegeln in Y)"
+pattern = "EU36"
+box_length_conv = 680
+box_width_conv = 260
+origin_corner = 4
+
+# --- Sonderfälle -------------------------------------------------------------
+[[case]]
+name = "EU04_300x400"
+description = "Kurzseite voran: Variante Y hat weniger Drehungen"
+pattern = "EU04"
+box_length_conv = 300
+box_width_conv = 400
+
+[[case]]
+name = "EU36_260x680"
+description = "Kurzseite voran, gleiche Lage, Drehungen vertauscht"
+pattern = "EU36"
+box_length_conv = 260
+box_width_conv = 680
+
+[[case]]
+name = "EU96_640x205_overhang"
+description = "SKU aus dem PDF: 10 mm Überstand je Seite in Y"
+pattern = "EU96"
+box_length_conv = 640
+box_width_conv = 205
+
+[[case]]
+name = "EU01_1300x900_larger"
+description = "Einzelkarton größer als die Palette"
+pattern = "EU01"
+box_length_conv = 1300
+box_width_conv = 900
+
+[[case]]
+name = "EU02_500x780_extend"
+description = "Saugplatte: erster Karton fährt aus, zweiter blockiert"
+pattern = "EU02"
+box_length_conv = 500
+box_width_conv = 780
+
+[[case]]
+name = "EU03_590x390_gap10"
+description = "Spaltmaß 10 mm"
+pattern = "EU03"
+box_length_conv = 590
+box_width_conv = 390
+gap = 10
+
+[[case]]
+name = "EU03_400x400_square"
+description = "Quadratischer Karton: immer 0°"
+pattern = "EU03"
+box_length_conv = 400
+box_width_conv = 400
+
+[[case]]
+name = "EU99_error"
+description = "Unbekanntes Muster: Fehlercode 103"
+pattern = "EU99"
+box_length_conv = 400
+box_width_conv = 300

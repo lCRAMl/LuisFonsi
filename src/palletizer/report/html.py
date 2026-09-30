@@ -60,11 +60,14 @@ def yes_no(flag: bool) -> str:
     return "ja" if flag else "nein"
 
 
-def build_report(result: LayerResult) -> str:
-    """Erzeugt den kompletten HTML-Report als Text."""
+def build_report(result: LayerResult, header: bool = True) -> str:
+    """Erzeugt den kompletten HTML-Report als Text.
+
+    header=False lässt Titel und Kennzahlen weg (z. B. eingebettet in die Oberfläche).
+    """
     inp = result.inputs
     title = f"Palettierung {result.pattern_id or inp.pattern}"
-    body = [_header(result)]
+    body = [_header(result)] if header else []
     if not result.ok:
         body.append(f'<section><p class="error">⛔ Fehler {result.error_code}: '
                     f'{escape(ERROR_TEXTS.get(result.error_code, "?"))}</p>'
@@ -415,8 +418,7 @@ def _calc_s7(result: LayerResult) -> str:
         rows.append(f"<tr><td>{b.no}</td><td>{escape(b.key)}</td><td class='n'>{b.rot}</td>"
                     f"<td class='n'>{px:g} × {py:g}</td><td class='n'>{ex:g} × {ey:g}</td>"
                     f"<td>{yes_no(gr.needed)}</td><td>{yes_no(gr.allowed)}</td>"
-                    f"<td class='n'><b>{int(gr.extend)}</b></td>"
-                    f"<td>{'⚠ ja' if gr.plate_over_neighbor else 'nein'}</td></tr>")
+                    f"<td class='n'><b>{int(gr.extend)}</b></td></tr>")
     return f"""
 <h3>S7 · Saugplatte</h3>
 <p>Die Platte sitzt mittig auf dem Karton und dreht sich mit ihm (Grundplatte
@@ -428,7 +430,7 @@ erlaubt = ausgefahrene Platte überdeckt keinen bereits abgelegten Karton<br>
 Ausfahren = nötig UND erlaubt
 </div>
 <table class="data"><thead><tr><th>Nr</th><th>Karton</th><th>Rot</th><th>Grundplatte X × Y</th>
-<th>ausgefahren X × Y</th><th>nötig</th><th>erlaubt</th><th>Ausfahren</th><th>Platte über Nachbar</th></tr></thead>
+<th>ausgefahren X × Y</th><th>nötig</th><th>erlaubt</th><th>Ausfahren</th></tr></thead>
 <tbody>{"".join(rows)}</tbody></table>"""
 
 
@@ -479,7 +481,6 @@ def _box_data(result: LayerResult) -> str:
             "free": ", ".join(ZONE_NAMES[k] for k in range(8) if a.free & (1 << k)) or "–",
             "v": [f2(a.vx), f2(a.vy)], "outward": a.used_outward, "noFree": a.no_free,
             "needed": b.gripper.needed, "allowed": b.gripper.allowed, "extend": b.gripper.extend,
-            "plateOver": b.gripper.plate_over_neighbor,
             "warnings": warning_texts(b.warnings),
         })
     # "</" im JSON verhindern, damit der Script-Block nicht vorzeitig endet

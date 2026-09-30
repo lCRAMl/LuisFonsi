@@ -4,3 +4,10 @@ pattern = "EU36"
 box_length_conv = 680.0
 box_width_conv = 260.0
 origin_corner = 1
+
+[export]
+json = true
+csv = true
+scl = true
+html = true
+pdf = false

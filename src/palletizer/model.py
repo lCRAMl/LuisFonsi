@@ -32,6 +32,17 @@ class Inputs:
     approach_height: float = 20.0   # Höhe der Vorposition über der Ablage (Z)
     tolerance: float = 0.1          # Toleranz eps für Vergleiche
 
+    def __post_init__(self):
+        """Typen vereinheitlichen (z. B. 680 aus TOML -> 680.0), wie später in der SPS (LReal/Int)."""
+        for f in fields(self):
+            value = getattr(self, f.name)
+            if f.type in ("float", float):
+                setattr(self, f.name, float(value))
+            elif f.type in ("int", int):
+                setattr(self, f.name, int(value))
+            elif f.type in ("str", str):
+                setattr(self, f.name, str(value))
+
     @classmethod
     def from_dict(cls, data: dict) -> "Inputs":
         """Erzeugt die Eingaben aus einem Dictionary (z. B. aus einer TOML-Datei)."""
@@ -39,10 +50,7 @@ class Inputs:
         unknown = sorted(set(data) - known)
         if unknown:
             raise ValueError(f"Unbekannte Eingabeparameter: {', '.join(unknown)}")
-        values = dict(data)
-        if "pattern" in values:
-            values["pattern"] = str(values["pattern"])
-        return cls(**values)
+        return cls(**data)
 
 
 @dataclass
@@ -175,7 +183,6 @@ class GripperInfo:
     needed: bool = False           # Karton länger als die Grundplatte in Ausfahrachse
     allowed: bool = False          # ausgefahrene Platte überdeckt keinen abgelegten Karton
     extend: bool = False           # Ausgabe: 1 = ausfahren
-    plate_over_neighbor: bool = False
 
 
 @dataclass

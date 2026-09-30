@@ -17,16 +17,61 @@ Pro Karton werden berechnet:
 Voraussetzung: Python 3.11 oder neuer. Der Rechenkern braucht keine weiteren Pakete.
 
 ```powershell
-pip install -e .[dev]          # einmalig (installiert auch pytest)
+pip install -e .[dev,gui]      # einmalig (installiert auch pytest und streamlit)
 
+palletizer gui                                         # Bedienoberfläche im Browser
 palletizer list                                       # alle Muster
+palletizer suggest --box 680x260                       # Musterassistent
 palletizer calc --pattern EU36 --box 680x260           # Karton: Förderrichtung x quer
 palletizer calc --config examples/eu36.toml --origin 3
-palletizer calc --pattern EU36 --box 680x260 --html output/eu36.html --pdf output/eu36.pdf
+palletizer calc --pattern EU36 --box 680x260 --export json,csv,scl,html,pdf
+palletizer testvectors                                 # Testvektoren für die SPS erzeugen
+palletizer export-patterns                             # Musterdefinitionen als SCL-DB
+palletizer docs                                        # Formelsammlung als PDF
 pytest                                                 # Tests
 ```
 
-Der HTML-Report enthält das Lagenbild mit Schritt-für-Schritt-Steuerung (Karton anklicken,
+## Bedienoberfläche
+
+`palletizer gui` startet die Oberfläche im Browser (Streamlit). Links alle Eingaben
+(Karton, Muster, Orientierung, Palette, Nullpunkt, Spaltmaß, Überstand, Saugplatte,
+Vorposition), rechts Kennzahlen und vier Reiter:
+
+- **Lagenbild & Rechenweg** – der komplette Report mit Schritt-für-Schritt-Ansicht
+- **Kartonliste** – Ausgabe an die SPS als Tabelle
+- **Musterassistent** – alle Muster mit dem aktuellen Karton, sortiert nach „passt ohne
+  Überstand“, Kartonanzahl, Flächennutzung, Drehungen; Muster per Klick übernehmen
+- **Export** – Formate auswählen, einzeln herunterladen oder in einen Ordner speichern
+
+## Exporte
+
+Welche Exporte erzeugt werden, ist einstellbar: im Abschnitt `[export]` der
+Konfigurationsdatei (siehe `config/defaults.toml`) oder mit `--export` auf der
+Kommandozeile (`all`, `none` oder eine Liste). Zielordner `--out`, Dateiname `--name`.
+
+| Format | Datei | Inhalt |
+|---|---|---|
+| `json` | `.json` | vollständiges Ergebnis inkl. aller Zwischenergebnisse |
+| `csv` | `.csv` | Kartonliste für Excel (Trenn-/Dezimalzeichen einstellbar) |
+| `scl` | `.scl` | UDTs `typPalInput`, `typPalBox`, `typPalLayer` + DB `DB_PalLayer` mit dem Ergebnis |
+| `scl_patterns` | `DB_PalPatterns.scl` | UDT `typPalPattern` + DB mit allen Musterdefinitionen |
+| `testvector` | Ordner | alle Zwischenstufen als CSV zum Vergleich mit einer SCL-Umsetzung |
+| `html` | `.html` | Report mit Lagenbild, Schritt-für-Schritt-Ansicht und Rechenweg |
+| `pdf` | `.pdf` | Report als PDF (über Microsoft Edge bzw. Google Chrome) |
+
+Die SCL-Dateien werden in TIA Portal unter „Externe Quellen“ eingefügt und mit
+„Bausteine aus Quelle generieren“ übersetzt.
+
+## Testvektoren
+
+`examples/testvectors.toml` enthält die Fallsammlung (alle 18 Muster, alle Nullpunkte,
+Sonderfälle). `palletizer testvectors` schreibt pro Fall einen Ordner nach
+`examples/testvectors/` mit `inputs.csv`, `variants.csv`, `blocks.csv`, `sequence.csv`,
+`boxes.csv` und `layer.csv` (Trennzeichen `;`, Dezimalpunkt). Ein Test prüft, dass die
+abgelegten Dateien zum aktuellen Algorithmus passen – nach einer gewollten Änderung
+neu erzeugen und den Git-Diff prüfen.
+
+Der HTML-Report (`--export html`) enthält das Lagenbild mit Schritt-für-Schritt-Steuerung (Karton anklicken,
 Pfeiltasten, Esc = Gesamtansicht), die Ausgabetabelle für die SPS, den Variantenvergleich,
 kleine Bilder jedes Ablageschritts und den kompletten Rechenweg mit eingesetzten Zahlen.
 Das PDF wird über Microsoft Edge bzw. Google Chrome im Hintergrund gedruckt.
@@ -59,5 +104,15 @@ Ohne Installation: `$env:PYTHONPATH="src"; python -m palletizer list`
 | S8 | `transform.py` | Umrechnung auf den Palettennullpunkt (Spiegeln) |
 | – | `viz/svg.py` | Zeichnung der Lage (SVG) |
 | – | `report/` | HTML-Report und PDF |
+| – | `export/` | JSON, CSV, SCL, Testvektoren |
+| – | `assistant.py` | Musterassistent |
+| – | `app.py` | Bedienoberfläche (Streamlit) |
 
-Die fachlichen Festlegungen stehen in [doc/planung.md](doc/planung.md).
+## Dokumentation
+
+| Dokument | Inhalt |
+|---|---|
+| [doc/formelsammlung.html](doc/formelsammlung.html) | alle Formeln mit Skizzen und Rechenbeispiel (PDF: `palletizer docs`) |
+| [doc/sps-leitfaden.md](doc/sps-leitfaden.md) | Umsetzung in SCL: UDTs, Bausteine, Pseudocode, Testvektoren, Übergabe an den Roboter |
+| [doc/planung.md](doc/planung.md) | freigegebene fachliche Festlegungen |
+| [patterns/README.md](patterns/README.md) | Format der Musterdefinitionen, eigene Muster und Plugins |

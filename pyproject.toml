@@ -13,6 +13,7 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+gui = ["streamlit>=1.50"]
 
 [project.scripts]
 palletizer = "palletizer.cli:main"

@@ -81,21 +81,24 @@ def write_exports(result: LayerResult, options: ExportOptions,
         return []
     out_dir = Path(options.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    base = out_dir / (options.name or default_name(result))
+    name = options.name or default_name(result)
+
+    def target(suffix: str) -> Path:
+        return out_dir / f"{name}{suffix}"
     written: list[Path] = []
 
     if "json" in options.formats:
-        path = base.with_suffix(".json")
+        path = target(".json")
         path.write_text(to_json(result), encoding="utf-8")
         written.append(path)
     if "csv" in options.formats:
-        path = base.with_suffix(".csv")
+        path = target(".csv")
         # Mit BOM, damit Excel die Datei als UTF-8 erkennt
         path.write_text(boxes_csv(result, options.csv_delimiter, options.csv_decimal),
                         encoding="utf-8-sig")
         written.append(path)
     if "scl" in options.formats:
-        path = base.with_suffix(".scl")
+        path = target(".scl")
         path.write_text(layer_scl(result), encoding="utf-8-sig")
         written.append(path)
     if "scl_patterns" in options.formats:
@@ -103,15 +106,15 @@ def write_exports(result: LayerResult, options: ExportOptions,
         path.write_text(patterns_scl(library), encoding="utf-8-sig")
         written.append(path)
     if "testvector" in options.formats:
-        written += write_testvector(result, out_dir / f"{base.name}_testvector")
+        written += write_testvector(result, out_dir / f"{name}_testvector")
     if "html" in options.formats or "pdf" in options.formats:
-        html_path = base.with_suffix(".html")
+        html_path = target(".html")
         html_path.write_text(build_report(result), encoding="utf-8")
         if "html" in options.formats:
             written.append(html_path)
         if "pdf" in options.formats:
             try:
-                written.append(html_to_pdf(html_path, base.with_suffix(".pdf")))
+                written.append(html_to_pdf(html_path, target(".pdf")))
             finally:
                 if "html" not in options.formats:
                     html_path.unlink(missing_ok=True)

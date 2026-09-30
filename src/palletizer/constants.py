@@ -50,15 +50,13 @@ WARN_OVERHANG = 1 << 0                # Überstand größer als erlaubt
 WARN_BOX_LARGER_THAN_PALLET = 1 << 1  # Einzelkarton größer als die Palette
 WARN_NO_FREE_APPROACH = 1 << 2        # keine kollisionsfreie Anfahrrichtung gefunden
 WARN_EXTEND_BLOCKED = 1 << 3          # Ausfahren nötig, aber durch Nachbarn blockiert
-WARN_PLATE_OVER_NEIGHBOR = 1 << 4     # Saugplatte überdeckt einen abgelegten Karton
-WARN_SHORT_SIDE_LEADING = 1 << 5      # Hinweis: Karton kommt mit der Kurzseite voran
+WARN_SHORT_SIDE_LEADING = 1 << 4      # Hinweis: Karton kommt mit der Kurzseite voran
 
 WARNING_TEXTS = {
     WARN_OVERHANG: "Überstand größer als erlaubt",
     WARN_BOX_LARGER_THAN_PALLET: "Karton größer als die Palette",
     WARN_NO_FREE_APPROACH: "Keine freie Anfahrrichtung",
     WARN_EXTEND_BLOCKED: "Saugplatte müsste ausfahren, Nachbarn blockieren",
-    WARN_PLATE_OVER_NEIGHBOR: "Saugplatte überdeckt abgelegten Karton",
     WARN_SHORT_SIDE_LEADING: "Hinweis: Karton kommt mit der Kurzseite voran",
 }
 

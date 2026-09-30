@@ -16,7 +16,7 @@ from __future__ import annotations
 from .approach import choose_approach
 from .constants import (DIR_X, DIR_Y, ERR_NO_VALID_VARIANT, WARN_BOX_LARGER_THAN_PALLET,
                         WARN_EXTEND_BLOCKED, WARN_NO_FREE_APPROACH, WARN_OVERHANG,
-                        WARN_PLATE_OVER_NEIGHBOR, WARN_SHORT_SIDE_LEADING)
+                        WARN_SHORT_SIDE_LEADING)
 from .gripper import evaluate_gripper
 from .layout import build_variant, choose_variant
 from .model import Box, BoxResult, Inputs, LayerResult
@@ -93,8 +93,6 @@ def calculate(inp: Inputs, library: PatternLibrary) -> LayerResult:
         gripper = evaluate_gripper(box, placed, inp)
         if gripper.needed and not gripper.allowed:
             warnings |= WARN_EXTEND_BLOCKED
-        if gripper.plate_over_neighbor:
-            warnings |= WARN_PLATE_OVER_NEIGHBOR
 
         # Vorposition im Grundsystem, danach Umrechnung auf den Nullpunkt
         pre_dx = inp.approach_dist * DIR_X[approach.direction]

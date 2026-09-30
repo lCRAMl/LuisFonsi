@@ -101,12 +101,12 @@ def write_testvector(result: LayerResult, folder: Path) -> list[Path]:
         a, g = b.approach, b.gripper
         rows.append([b.no, b.block_id, b.col, b.row, b.x_base, b.y_base, b.size_x, b.size_y,
                      b.rot, a.mask, a.free, a.vx, a.vy, a.wx, a.wy, a.used_outward, a.no_free,
-                     b.approach_angle_base, g.needed, g.allowed, g.plate_over_neighbor,
+                     b.approach_angle_base, g.needed, g.allowed,
                      b.x, b.y, b.approach_angle, b.pre_dx, b.pre_dy, b.pre_dz,
                      b.extend_plate, b.warnings])
     _write(path, ["No", "BlockId", "Col", "Row", "XBase", "YBase", "SizeX", "SizeY", "Rot",
                   "NeighborMask", "FreeMask", "VX", "VY", "WX", "WY", "UsedOutward", "NoFree",
-                  "ApproachAngleBase", "ExtendNeeded", "ExtendAllowed", "PlateOverNeighbor",
+                  "ApproachAngleBase", "ExtendNeeded", "ExtendAllowed",
                   "X", "Y", "ApproachAngle", "PreDX", "PreDY", "PreDZ", "ExtendPlate",
                   "Warnings"], rows)
     written.append(path)

@@ -59,7 +59,7 @@ def _codes_comment() -> list[str]:
 
 
 def _type_block(name: str, title: str, fields: list[tuple[str, str, str]]) -> list[str]:
-    lines = [f'TYPE "{name}"', f"TITLE = '{title}'", f"VERSION : {SCL_VERSION}", "   STRUCT"]
+    lines = [f"// {title}", f'TYPE "{name}"', f"VERSION : {SCL_VERSION}", "   STRUCT"]
     for field_name, scl_type, comment in fields:
         lines.append(f"      {field_name} : {scl_type};   // {comment}")
     lines += ["   END_STRUCT;", "END_TYPE", ""]
