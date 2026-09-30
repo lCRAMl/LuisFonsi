@@ -1,0 +1,7 @@
+# Layerpattern EU96 aus reference/Kave_Layerpattern.pdf, Seite 4
+id = "EU96"
+number = 96
+name = "1x4+2x1 (mixto)"
+drawn_long_side = "x"
+block_a = { cols = 1, rows = 4 }
+block_b = { cols = 2, rows = 1 }  # um 90° gedreht, rechts von A, oben bündig

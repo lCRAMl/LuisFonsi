@@ -1,0 +1,29 @@
+# Standardwerte aller Eingabeparameter (mm).
+# Diese Datei dient als Vorlage: kopieren, anpassen und mit --config übergeben.
+# Nicht angegebene Parameter behalten die Standardwerte aus palletizer/model.py.
+
+# Palette (EU-Palette)
+pallet_length = 1200.0       # X
+pallet_width = 800.0         # Y
+
+# Karton (muss je Auftrag angegeben werden)
+# box_length_conv = 680.0    # Maß in Förderrichtung
+# box_width_conv = 260.0     # Maß quer zur Förderrichtung
+# pattern = "EU36"           # Pattern-ID oder -Nummer
+
+origin_corner = 1            # Palettennullpunkt: 1 unten links, 2 unten rechts, 3 oben rechts, 4 oben links
+orientation_mode = 0         # 0 automatisch, 1 Variante X, 2 Variante Y
+gap = 0.0                    # Spaltmaß zwischen den Kartons
+max_overhang = 0.0           # erlaubter Überstand je Seite
+
+# Saugplatte (600 in Förderrichtung, 400 quer; fährt quer symmetrisch auf 1400 aus)
+plate_conv = 600.0
+plate_cross = 400.0
+plate_ext_conv = 600.0
+plate_ext_cross = 1400.0
+
+# Vorposition
+approach_dist = 30.0         # Versatz in X/Y
+approach_height = 20.0       # Versatz in Z
+
+tolerance = 0.1              # Toleranz eps für Vergleiche

@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Tests / Tools
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Erzeugte Ergebnisse
+output/*
+!output/.gitkeep

@@ -1,0 +1,7 @@
+# Layerpattern EU04 aus reference/Kave_Layerpattern.pdf, Seite 2
+id = "EU04"
+number = 4
+name = "3x2"
+# Zeichnung nahezu quadratisch, Orientierung nicht eindeutig
+drawn_long_side = "x"
+block_a = { cols = 3, rows = 2 }

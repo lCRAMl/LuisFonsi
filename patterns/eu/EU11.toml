@@ -1,0 +1,6 @@
+# Layerpattern EU11 aus reference/Kave_Layerpattern.pdf, Seite 2
+id = "EU11"
+number = 11
+name = "2x3"
+drawn_long_side = "x"
+block_a = { cols = 2, rows = 3 }

@@ -1,0 +1,6 @@
+# Layerpattern EU09 aus reference/Kave_Layerpattern.pdf, Seite 2
+id = "EU09"
+number = 9
+name = "3x3"
+drawn_long_side = "x"
+block_a = { cols = 3, rows = 3 }

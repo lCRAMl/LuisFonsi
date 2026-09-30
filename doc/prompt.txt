@@ -1,0 +1,240 @@
+Ich möchte ein neues Softwareprojekt entwickeln. Das Projekt soll einen Palettieralgorithmus für einen Industrieroboter entwickeln und gleichzeitig als verständliche Vorlage für einen SPS-Programmierer dienen.
+
+WICHTIG: Dies ist zunächst ausschließlich eine PLANUNGSPHASE.
+
+Noch keinen Code schreiben, keine Dateien anlegen und nichts implementieren.
+
+Analysiere zunächst die Aufgabenstellung, identifiziere alle offenen Punkte und stelle mir gezielt alle Fragen, die für eine saubere technische Umsetzung notwendig sind. Wenn mehrere sinnvolle Lösungswege existieren, stelle sie gegenüber und erkläre ihre Vor- und Nachteile.
+
+Ich möchte erst gemeinsam mit dir die fachliche Lösung, die Datenstruktur, die Berechnungsmethode und die technische Umsetzung festlegen. Erst wenn ich die Planung bestätigt habe, soll die eigentliche Implementierung beginnen.
+
+## 1. Ziel des Projekts
+
+Es soll ein Algorithmus entstehen, der die Zielkoordinaten für einen Palettierroboter berechnet.
+
+Auf einer Palette werden rechteckige Kartons nach vorgegebenen Layerpatterns angeordnet.
+
+Für jeden Karton sollen mindestens folgende Informationen berechnet werden:
+
+* X-Koordinate des Kartonmittelpunkts
+* Y-Koordinate des Kartonmittelpunkts
+* notwendige Kartondrehung: 0° oder 90°
+* Annäherungsrichtung zum Ablegen in 45°-Schritten
+* Information, ob der Saugkopf ausgefahren werden muss
+
+Alle Koordinaten sollen relativ zu einem frei wählbaren Palettennullpunkt berechnet werden.
+
+Der Palettennullpunkt soll an jeder der vier Palettenecken liegen können.
+
+## 2. Eingangsgrößen
+
+Der Algorithmus soll mindestens folgende Eingaben besitzen:
+
+* Kartonlänge
+* Kartonbreite
+* Layerpattern
+* Palettenlänge
+* Palettenbreite
+* Position des Palettennullpunkts
+* Größe des Vakuum-Saugkopfs
+
+Die Kartongröße soll frei veränderbar sein.
+
+Das Layerpattern soll auswählbar sein.
+
+Die Layerpatterns sind in dem von mir bereitgestellten PDF beschrieben. Analysiere dieses PDF und überführe die darin beschriebenen Muster in eine geeignete mathematische bzw. algorithmische Beschreibung. Es wäre schön wenn man die Liste der Patterns nachträglich erweitern könnte.
+
+Falls Informationen im PDF für eine eindeutige Umsetzung fehlen, frage mich nach.
+
+## 3. Palettenanordnung
+
+Aus Kartongröße und ausgewähltem Layerpattern soll die tatsächliche Anordnung der Kartons auf der Palette berechnet werden.
+
+Dabei müssen die Kartons:
+
+* dem ausgewählten Layerpattern entsprechen
+* möglichst dicht gepackt sein
+* Karton an Karton liegen
+* innerhalb der Palettenfläche bleiben esseiden es ist ein einzelnes Paket dass größer ist als die Palette.
+* die tatsächliche Kartongröße berücksichtigen
+* bei Bedarf um 90° gedreht werden
+
+Für jeden Karton soll anschließend der Mittelpunkt berechnet werden.
+
+Die Koordinaten müssen abhängig vom gewählten Palettennullpunkt ausgegeben werden.
+
+## 4. Kartondrehung
+
+Für jeden Karton soll eindeutig ausgegeben werden:
+
+* 0° Drehung
+* oder 90° Drehung
+
+Die Drehung muss aus dem Layerpattern und der tatsächlichen geometrischen Anordnung hervorgehen.
+
+## 5. Saugkopf
+
+Der Roboter besitzt einen Vakuum-Saugkopf in Form einer rechteckigen Vakuumplatte.
+
+Die Größe der Vakuumplatte soll einstellbar sein.
+
+Wenn der Karton größer als die eingestellte Vakuumplatte ist, soll für diesen Karton ausgegeben werden:
+
+`1 = Saugkopf ausfahren`
+
+Andernfalls:
+
+`0 = Saugkopf nicht ausfahren`
+
+Falls diese Definition geometrisch genauer formuliert werden muss, kläre das mit mir, bevor du sie implementierst.
+
+## 6. Annäherungsrichtung
+
+Beim Ablegen darf ein bereits abgelegter Karton möglichst nicht berührt oder verschoben werden.
+
+Deshalb soll für jeden Karton eine geeignete Annäherungsrichtung bestimmt werden.
+
+Mögliche Richtungen sind in 45°-Schritten:
+
+* 0°
+* 45°
+* 90°
+* 135°
+* 180°
+* 225°
+* 270°
+* 315°
+
+Für jeden Karton soll anhand der bereits vorhandenen Kartons bestimmt werden, aus welcher dieser Richtungen der Roboter den Karton am sichersten annähern kann.
+
+Die Grundidee ist:
+
+Der Karton soll aus der Richtung angenähert werden, aus der er beim Einfahren in seine endgültige Position möglichst wenige bzw. keine bereits abgelegten Kartons berührt.
+
+Hier muss eine eindeutige geometrische Berechnung definiert werden. Entwickle dafür zunächst ein mathematisches Modell und bespreche es mit mir, bevor du es implementierst.
+
+## 7. SPS-Vorlage
+
+Das Projekt soll nicht nur ein funktionierender Rechner sein.
+
+Es soll gleichzeitig als Vorlage für einen SPS-Programmierer dienen.
+
+Der SPS-Programmierer soll anhand des Projekts möglichst einfach nachvollziehen können:
+
+* welche Eingangsgrößen benötigt werden
+* welche Berechnungen durchgeführt werden
+* welche Zwischenergebnisse entstehen
+* wie die Kartonpositionen bestimmt werden
+* wie Drehungen bestimmt werden
+* wie die Annäherungsrichtung bestimmt wird
+* wie die Saugkopfausfahrt bestimmt wird
+* welche Daten am Ende an den Roboter übergeben werden
+
+Die Berechnungen sollen deshalb möglichst deterministisch, nachvollziehbar und SPS-tauglich sein.
+
+Vermeide unnötig komplizierte mathematische Verfahren, wenn eine einfachere und SPS-freundliche Lösung möglich ist.
+
+Das Projekt soll einem SPS-Programmierer ermöglichen, den Algorithmus anschließend beispielsweise in SCL nachzubilden.
+
+## 8. Excel oder Python?
+
+Hier bin ich noch nicht festgelegt.
+
+Excel wäre interessant, weil die Datei von vielen Personen geöffnet, nachvollzogen und verändert werden kann.
+
+Python bietet dagegen wesentlich mehr Möglichkeiten für:
+
+* komplexe Geometrie
+* Algorithmen
+* Visualisierung
+* Tests
+* Simulation
+* spätere Erweiterungen
+* automatisierte Berechnungen
+
+Bitte entscheide das nicht einfach selbst.
+
+Vergleiche zunächst sinnvolle Architekturvarianten, beispielsweise:
+
+1. Excel als vollständiges Tool
+2. Python als vollständiges Tool
+3. Python als Berechnungsengine + Excel als Bedien-/Dokumentationsoberfläche
+4. Python-Tool mit einer für SPS-Programmierer besonders einfachen Ausgabe
+5. eine andere von dir vorgeschlagene Architektur
+
+Bewerte dabei insbesondere:
+
+* Wartbarkeit
+* Verständlichkeit für SPS-Programmierer
+* Erweiterbarkeit
+* Visualisierung
+* Testbarkeit
+* Git-Tauglichkeit
+* einfache Weitergabe
+* Abhängigkeiten
+* spätere Übertragung nach SCL
+* Eignung für komplexere Layerpatterns
+
+Gib mir anschließend eine begründete Empfehlung, aber implementiere noch nichts.
+
+## 9. Visualisierung
+
+Ich möchte nach Möglichkeit sehen können, wie das Layerpattern auf der Palette aussieht.
+
+Eine grafische Darstellung sollte mindestens zeigen:
+
+* Palette
+* Palettennullpunkt
+* Kartons
+* Kartonnummer
+* Kartonmittelpunkt
+* Kartonorientierung
+* Annäherungsrichtung
+* gegebenenfalls Saugkopfabmessung
+
+Die Visualisierung soll insbesondere dazu dienen, die Berechnung zu kontrollieren und Fehler in den Layerpatterns schnell zu erkennen. Du könntest sie aber erweitern, wenn es sinnvoll ist.
+
+Schlage vor, wie diese Visualisierung am sinnvollsten umgesetzt werden kann.
+
+## 10. Projektstruktur
+
+Das Projekt soll von Anfang an sauber strukturiert sein und problemlos in Git versioniert werden können.
+
+Die konkrete Ordnerstruktur soll von der gemeinsam ausgewählten technischen Lösung abhängen.
+
+Sie soll unter anderem berücksichtigen:
+
+* Quellcode
+* Layerpattern-Definitionen
+* Tests
+* Beispieldaten
+* Dokumentation
+* PDF bzw. Referenzmaterial
+* Visualisierung
+* Konfiguration
+* Ergebnisse/Exports
+
+Schlage zunächst eine sinnvolle Projektstruktur vor und erkläre kurz die Aufgabe der einzelnen Bereiche.
+
+## 11. Ergebnis der Planungsphase
+
+Bevor du irgendeinen Code schreibst, möchte ich von dir:
+
+1. eine strukturierte Analyse der Aufgabenstellung
+2. eine Liste aller offenen Fragen
+3. eine Beschreibung der benötigten Eingangs- und Ausgangsdaten
+4. ein mathematisches Modell für die Kartonanordnung
+5. einen Vorschlag für die Berechnung der Annäherungsrichtung
+6. einen Vorschlag für die Saugkopfberechnung
+7. einen Vergleich möglicher technischer Umsetzungen
+8. eine Empfehlung für die Architektur
+9. einen Vorschlag für die Projektstruktur
+10. eine Beschreibung, wie die Ergebnisse für einen SPS-Programmierer aufbereitet werden
+11. eine Liste möglicher Sonderfälle und Fehlerfälle
+
+Stelle mir deine Fragen nacheinander bzw. gruppiert nach Themen.
+
+Warte anschließend auf meine Antworten.
+
+Erst wenn alle wesentlichen Punkte geklärt sind und ich die Planung ausdrücklich freigegeben habe, darfst du mit der Implementierung beginnen.
+Aber ich glaube fast es wird Python werden müssen, aber dann sollte ein geeignetes Exportformat gewählt werden. Ich möchte die Ergebnisse exportieren können. Zudem wäre eine Hilfe mit allen Mathematischen beschreibungen und Formeln hilfreich.

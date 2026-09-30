@@ -1,0 +1,6 @@
+# Layerpattern EU07 aus reference/Kave_Layerpattern.pdf, Seite 2
+id = "EU07"
+number = 7
+name = "3x1"
+drawn_long_side = "y"
+block_a = { cols = 3, rows = 1 }

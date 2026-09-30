@@ -1,0 +1,6 @@
+# Layerpattern EU29 aus reference/Kave_Layerpattern.pdf, Seite 4
+id = "EU29"
+number = 29
+name = "5x1"
+drawn_long_side = "y"
+block_a = { cols = 5, rows = 1 }

@@ -1,0 +1,6 @@
+# Layerpattern EU20 aus reference/Kave_Layerpattern.pdf, Seite 3
+id = "EU20"
+number = 20
+name = "4x1"
+drawn_long_side = "y"
+block_a = { cols = 4, rows = 1 }

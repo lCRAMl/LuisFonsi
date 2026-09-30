@@ -1,0 +1,6 @@
+# Layerpattern EU06 aus reference/Kave_Layerpattern.pdf, Seite 2
+id = "EU06"
+number = 6
+name = "1x2"
+drawn_long_side = "x"
+block_a = { cols = 1, rows = 2 }

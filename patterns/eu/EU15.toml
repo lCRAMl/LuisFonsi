@@ -1,0 +1,7 @@
+# Layerpattern EU15 aus reference/Kave_Layerpattern.pdf, Seite 3
+id = "EU15"
+number = 15
+name = "2x3+1x1 (mixto)"
+drawn_long_side = "x"
+block_a = { cols = 2, rows = 3 }
+block_b = { cols = 1, rows = 1 }  # um 90° gedreht, rechts von A, oben bündig
